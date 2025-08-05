@@ -217,28 +217,24 @@ exports.sendSms = async (req, res) => {
     const { simSlot: simSlotRaw, toNumber, message } = req.body;
     const device_id = req.params.id;
 
-    // Validate device ID
     if (!mongoose.isValidObjectId(device_id)) {
       return res.status(400).json({ success: false, error: "Invalid device ID" });
     }
 
-    // Validate input fields
     if (!toNumber || !message || !simSlotRaw) {
       return res.status(400).json({ success: false, error: "All fields are required" });
     }
 
-    // Validate phone number
     if (!/^\d{10,15}$/.test(toNumber)) {
       return res.status(400).json({ success: false, error: "Invalid phone number" });
     }
 
-    // Convert simSlot to "0" or "1"
+    // Map frontend simSlot to schema enum
     let simSlot = null;
-    if (simSlotRaw === "SIM 1" || simSlotRaw === "0") simSlot = "0";
-    else if (simSlotRaw === "SIM 2" || simSlotRaw === "1") simSlot = "1";
-    else return res.status(400).json({ success: false, error: "Invalid SIM slot value. Must be 'SIM 1', 'SIM 2', '0' or '1'" });
+    if (simSlotRaw === "SIM 1") simSlot = "sim1";
+    else if (simSlotRaw === "SIM 2") simSlot = "sim2";
+    else return res.status(400).json({ success: false, error: "Invalid simSlot value" });
 
-    // Create new SMS message
     const newSms = new SmsMessage({
       uniqueid: device_id,
       simSlot,
@@ -260,6 +256,8 @@ exports.sendSms = async (req, res) => {
   }
 };
 
+
+// ❌ Delete Device
 exports.deleteDevice = async (req, res) => {
   const { id } = req.params;
   const { password } = req.body;
